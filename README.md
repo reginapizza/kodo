@@ -19,7 +19,7 @@
 **Commands List**<br/>
 Command to build project -> go build -o bin/kodo main.go<br/>
 To try out different commands,go to folder bin/kodo and try running below commands<br />
->  count       command to count <resources><br />
+>  count       command to count <resources> e.g you can try running count pods to get number of running pods on cluster url<br />
 >  deploy      Command to deploy an image<br />
 >  help        Help about available commands<br />
 >  version     Version details<br />
