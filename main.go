@@ -25,6 +25,7 @@ func init() {
 	rcommand.AddCommand(versionCommand)
 	rcommand.AddCommand(listCommand)
 	rcommand.AddCommand(deployCommand)
+	rcommand.AddCommand(buildCommand)
 	rcommand.PersistentFlags().StringVarP(&envVar.Host, "server", "s", "myurl", "this is the cluster url")
 	rcommand.PersistentFlags().StringVarP(&envVar.Bearertoken, "token", "t", "usertoken", "this is the user token")
 	rcommand.PersistentFlags().StringVarP(&envVar.Namespace, "namespace", "n", "", "this is the namespace")
@@ -37,6 +38,7 @@ func init() {
 	rcommand.PersistentFlags().StringVarP(&deployVar.Image, "image", "i", "myimage", "this is the tagged image for deployment")
 	rcommand.PersistentFlags().Int32VarP(&deployVar.Replicas, "replicas", "r", 1, "number of replicas")
 	rcommand.PersistentFlags().Int32VarP(&deployVar.Port, "port", "p", 8000, "port at which app should run")
+	rcommand.PersistentFlags().StringVarP(&deployVar.Source, "source", "o", "github.com", "github repo which has docker image")
 
 	rcommand.MarkFlagRequired("server")
 }
@@ -61,5 +63,13 @@ var deployCommand = &cobra.Command{
 	Run: func(cm *cobra.Command, args []string) {
 		fmt.Println("Creating image deployment")
 		cmd.Deploy(deployVar, envVar)
+	},
+}
+
+var buildCommand = &cobra.Command{
+	Use: "build",
+	Run: func(cm *cobra.Command, args []string) {
+		fmt.Println("Building image from docker file at source")
+		cmd.Build()
 	},
 }

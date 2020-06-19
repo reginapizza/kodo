@@ -10,12 +10,15 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// DeploymentVariables :
 type DeploymentVariables struct { //New struct for deployment creation variables
 	Image    string
 	Replicas int32
 	Port     int32
+	Source   string
 }
 
+// Deploy :
 func Deploy(deployVar *DeploymentVariables, envVar *EnvironmentVariables) error {
 
 	client, clientError := newOpenShiftClient(envVar)
