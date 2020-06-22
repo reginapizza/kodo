@@ -70,6 +70,6 @@ var buildCommand = &cobra.Command{
 	Use: "build",
 	Run: func(cm *cobra.Command, args []string) {
 		fmt.Println("Building image from docker file at source")
-		cmd.Build(envVar)
+		cmd.Build(envVar, deployVar)
 	},
 }

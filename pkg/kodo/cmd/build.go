@@ -58,19 +58,19 @@ func createBuildSpec(uri string) buildv1api.BuildConfigSpec {
 			Output: buildv1api.BuildOutput{
 				To: &corev1.ObjectReference{
 					Kind: "ImageStreamTag",
-					Name: "my-ruby-image:latest",
+					Name: "my-ruby-image-final:latest",
 				},
 			},
 		},
 	}
 }
 
-func createBuildConfig() error {
+func createBuildConfig(envVar *EnvironmentVariables, deployVar *DeploymentVariables) error {
 	buildclient := newBuildConfigClient(envVar)
 	buildConfig := buildv1api.BuildConfig{
 		TypeMeta:   createTypeMeta("BuildConfig", "build.openshift.io/v1"),
-		ObjectMeta: createObjectType("my-app-docker-build", "regina-build"),
-		Spec:       createBuildSpec(Source),
+		ObjectMeta: createObjectType("my-app-docker-build-final", ""),
+		Spec:       createBuildSpec(deployVar.Source),
 	}
 
 	_, builderror := buildclient.BuildConfigs(envVar.Namespace).Create(context.TODO(), &buildConfig, metav1.CreateOptions{})
@@ -86,7 +86,7 @@ func createImageStream(envVar *EnvironmentVariables) error {
 	imagestreamClient := newImageStreamClient(envVar)
 	imageStream := imagev1api.ImageStream{
 		TypeMeta:   createTypeMeta("ImageStream", "image.openshift.io/v1"),
-		ObjectMeta: createObjectType("my-ruby-image", "regina-build"),
+		ObjectMeta: createObjectType("my-ruby-image-final", envVar.Namespace),
 	}
 
 	_, imgerror := imagestreamClient.ImageStreams(envVar.Namespace).Create(context.TODO(), &imageStream, metav1.CreateOptions{})
@@ -124,7 +124,7 @@ func newBuildConfigClient(envVar *EnvironmentVariables) *buildv1clientapi.BuildV
 }
 
 //Build image from dockerfile at github source
-func Build(envVar *EnvironmentVariables) (error, error) {
+func Build(envVar *EnvironmentVariables, deployVar *DeploymentVariables) (error, error) {
 	// buildclient := newBuildConfigClient()
 	// buildconfig := createBuildConfig()
 
@@ -132,7 +132,7 @@ func Build(envVar *EnvironmentVariables) (error, error) {
 	// imagestream := createImageStream()
 
 	imgerror := createImageStream(envVar)
-	builderror := createBuildConfig(envVar.Source)
+	builderror := createBuildConfig(envVar, deployVar)
 
 	return imgerror, builderror
 }
