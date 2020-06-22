@@ -65,56 +65,44 @@ func createBuildSpec(uri string) buildv1api.BuildConfigSpec {
 	}
 }
 
-// Shoubik's hint -------------
-// func createBuildConfig() error {
-// 	buildclient := newBuildConfigClient()
-// 	buildConfig := buildv1api.BuildConfig{
-// 		// populate with relevant values
-// 	}
-
-// 	_, err := buildclient.BuildConfigs(Namespace).Create(context.TODO(), &buildConfig, metav1.CreateOptions{})
-// 	return err
-// }
-
 func createBuildConfig() error {
 	buildclient := newBuildConfigClient()
 	buildConfig := buildv1api.BuildConfig{
 		TypeMeta:   createTypeMeta("BuildConfig", "build.openshift.io/v1"),
-		ObjectMeta: createObjectType("my-app-docker-build", &envVar.Namespace),
+		ObjectMeta: createObjectType("my-app-docker-build", ""),
 		Spec:       createBuildSpec(Source),
 	}
 
-	_, err := buildclient.BuildConfigs(&envVar.Namespace).Create(context.TODO(), &buildConfig, metav1.CreateOptions{})
-	return err
+	_, builderror := buildclient.BuildConfigs(envVar.Namespace).Create(context.TODO(), &buildConfig, metav1.CreateOptions{})
+
+	if builderror != nil {
+		fmt.Println("The build failed,", builderror)
+		return builderror
+	}
+	return nil
 }
-
-// Shoubhik's hint ------------------
-// func createImageStream() error {
-// 	imagestreamClient := newImageStreamClient()
-// 	imageStream := imagev1api.ImageStream{
-// 		// populate with relevant values
-// 	}
-
-// 	_, err := imagestreamClient.ImageStreams(Namespace).Create(context.TODO(), &imageStream, metav1.CreateOptions{})
-// 	return err
-
-// }
 
 func createImageStream() error {
 	imagestreamClient := newImageStreamClient()
 	imageStream := imagev1api.ImageStream{
 		TypeMeta:   createTypeMeta("ImageStream", "image.openshift.io/v1"),
-		ObjectMeta: createObjectType("my-ruby-image", "NAMESPACE"),
+		ObjectMeta: createObjectType("my-ruby-image", "regina-build"),
 	}
 
-	_, err := imagestreamClient.ImageStreams(Namespace).Create(context.TODO(), &imageStream, metav1.CreateOptions{})
-	return err
+	_, imgerror := imagestreamClient.ImageStreams(envVar.Namespace).Create(context.TODO(), &imageStream, metav1.CreateOptions{})
+
+	if imgerror != nil {
+		fmt.Println("The image stream failed,", imgerror)
+		return imgerror
+	}
+
+	return nil
 }
 
 func newImageStreamClient() *imagev1clientapi.ImageV1Client {
 	config := rest.Config{
-		Host:        Host,
-		BearerToken: Bearertoken,
+		Host:        envVar.Host,
+		BearerToken: envVar.Bearertoken,
 		TLSClientConfig: rest.TLSClientConfig{
 			Insecure: true,
 		},
@@ -125,8 +113,8 @@ func newImageStreamClient() *imagev1clientapi.ImageV1Client {
 
 func newBuildConfigClient() *buildv1clientapi.BuildV1Client {
 	config := rest.Config{
-		Host:        Host,
-		BearerToken: Bearertoken,
+		Host:        envVar.Host,
+		BearerToken: envVar.Bearertoken,
 		TLSClientConfig: rest.TLSClientConfig{
 			Insecure: true,
 		},
@@ -143,15 +131,8 @@ func Build() (error, error) {
 	// imagestreamclient := newImageStreamClient()
 	// imagestream := createImageStream()
 
-	_, imgerror := imagestreamclient.ImageStreams(Namespace).Create(context.TODO(), &imagestream, metav1.CreateOptions{})
-	_, builderror := buildclient.BuildConfigs(Namespace).Create(context.TODO(), &buildconfig, metav1.CreateOptions{})
-
-	if imgerror != nil {
-		return fmt.Println("The image stream failed,", imgerror)
-	}
-	if builderror != nil {
-		return fmt.Println("The build failed,", builderror)
-	}
+	imgerror := createImageStream()
+	builderror := createBuildConfig()
 
 	return imgerror, builderror
 }
