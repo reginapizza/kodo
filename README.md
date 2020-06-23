@@ -28,19 +28,19 @@ Kodo is a command line interface to build and deploy applications on Openshift.
 
 Before running commands, Set Path to $HOME/kodo/bin/.
 
-1. Count Resources: Command to count resources like pods running on cluster\
+1. count : Command to count resources like pods running on cluster\
     `kodo count <resources>` \
     For example, `kodo count pods --server=<server url> --token=<token>` will output count of running pods of a given cluster.
 
-2. Deploy : Command to deploy an image \
+2. deploy : Command to deploy an image \
     `kodo deploy --image=<image> --replicas=<no of replicas> --port=<port number> --token=<token> --server=<cluster url>  --namespace=<namespace>` 
 
-3. Build: Command to build an image from source \
+3. build: Command to build an image from source \
     `kodo build --source=<dockerfile source> --namespace=<namespace> 
  --token=<Token>--server=<cluster url>` 
 
-4. Help: Command to help user to list all available commands and flags\
+4. help: Command to help user to list all available commands and flags\
     `kodo help`
 
-5. Version : Command to check current version \
+5. version : Command to check current version \
     `kodo version`
