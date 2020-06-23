@@ -11,18 +11,11 @@ Kodo is a command line interface to build and deploy applications on Openshift.
  2. Create Your feature branch (`git checkout -b feature/fooBar`)
  3. Commit your changes (`git commit -am 'Add some fooBar'`)
  4. Push to the branch (`git push origin feature/fooBar`)
+ 5. Before creating pull request, Make sure to pull all upstream latest changes
  5. Create a new pull request
 
 ## Dependencies
- - "github.com/spf13/cobra" 
- - "k8s.io/client-go/kubernetes"  
- - "k8s.io/client-go/rest" 
- - "k8s.io/apimachinery/pkg/apis/meta/v1" 
- - "github.com/openshift/api/route/v1" 
- - "github.com/openshift/client-go/route/clientset/versioned/typed/route/v1" 
- - "k8s.io/api/apps/v1" 
- - "k8s.io/api/core/v1" 
- - "k8s.io/apimachinery/pkg/apis/meta/v1" 
+ - You can refer go.mod for list of dependencies.
 
 ## Commands List
 
@@ -35,8 +28,8 @@ Before running commands, Set Path to $HOME/kodo/bin/.
 2. deploy : Command to deploy an image \
     `kodo deploy --image=<image> --replicas=<no of replicas> --port=<port number> --token=<token> --server=<cluster url>  --namespace=<namespace>` 
 
-3. build: Command to build an image from source \
-    `kodo build --source=<dockerfile source> --namespace=<namespace> 
+3. build: Command to create new BuildConfig and ImageStream from Dockerfile in github repo \
+    `kodo build --source=<github url> --namespace=<namespace> 
  --token=<Token>--server=<cluster url>` 
 
 4. help: Command to help user to list all available commands and flags\
