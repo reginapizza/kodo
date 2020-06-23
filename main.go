@@ -27,33 +27,20 @@ func init() {
 	countCommand.AddCommand(podCommand)
 	rcommand.AddCommand(deployCommand)
 
-	deployCommand.Flags().StringVarP(&envVar.Host, "server", "s", "", "this is the cluster url")
-	deployCommand.Flags().StringVarP(&envVar.Bearertoken, "token", "t", "", "this is the user token")
-	deployCommand.Flags().StringVarP(&envVar.Namespace, "namespace", "n", "", "this is the namespace")
+	rcommand.PersistentFlags().StringVarP(&envVar.Host, "server", "s", "myurl", "this is the cluster url")
+	rcommand.PersistentFlags().StringVarP(&envVar.Bearertoken, "token", "t", "usertoken", "this is the user token")
+	rcommand.PersistentFlags().StringVarP(&envVar.Namespace, "namespace", "n", "", "this is the namespace")
 
 	/* Changed default namespace from 'namespace' to "" because
 	'namespace' causes some internal error and returns 0 pods
 	even if login credentials correct but namespace not explicitly set
 	whereas "" works fine */
 
-	//Flag for individual command
+	rcommand.PersistentFlags().StringVarP(&deployVar.Image, "image", "i", "myimage", "this is the tagged image for deployment")
+	rcommand.PersistentFlags().Int32VarP(&deployVar.Replicas, "replicas", "r", 1, "number of replicas")
+	rcommand.PersistentFlags().Int32VarP(&deployVar.Port, "port", "p", 8000, "port at which app should run")
 
-	deployCommand.Flags().StringVarP(&deployVar.Image, "image", "i", "myimage", "tagged image for deployment")
-	deployCommand.Flags().Int32VarP(&deployVar.Replicas, "replicas", "r", 1, "number of replicas")
-	deployCommand.Flags().Int32VarP(&deployVar.Port, "port", "p", 8000, "port at which app should run")
-
-	//required attributes for deploy command
-	deployCommand.MarkFlagRequired("server")
-	deployCommand.MarkFlagRequired("token")
-	deployCommand.MarkFlagRequired("image")
-
-	podCommand.Flags().StringVarP(&envVar.Host, "server", "s", "", "this is the cluster url")
-	podCommand.Flags().StringVarP(&envVar.Bearertoken, "token", "t", "", "this is the user token")
-	podCommand.Flags().StringVarP(&envVar.Namespace, "namespace", "n", "", "this is the namespace")
-	//required parameters for count pods command
-	podCommand.MarkFlagRequired("server")
-	podCommand.MarkFlagRequired("token")
-
+	rcommand.MarkFlagRequired("server")
 }
 
 func main() {
@@ -76,8 +63,7 @@ var podCommand = &cobra.Command{
 }
 
 var deployCommand = &cobra.Command{
-	Use:   "deploy",
-	Short: "Command to deploy an image",
+	Use: "deploy",
 	Run: func(cm *cobra.Command, args []string) {
 		fmt.Println("Creating image deployment")
 		cmd.Deploy(deployVar, envVar)
