@@ -42,6 +42,8 @@ func init() {
 	rcommand.PersistentFlags().Int32VarP(&deployVar.Port, "port", "p", 8000, "port at which app should run")
 
 	rcommand.MarkFlagRequired("server")
+	rcommand.AddCommand(buildCommand)
+	rcommand.PersistentFlags().StringVarP(&deployVar.Source, "source", "o", "github.com", "github repo which has docker image")
 }
 
 func main() {
@@ -60,6 +62,19 @@ var podCommand = &cobra.Command{
 		fmt.Println("List All Kubernetes Applications")
 		fmt.Printf("\nFetching all applications from %s in namespace %s", envVar.Host, envVar.Namespace)
 		cmd.List(envVar)
+	},
+}
+
+var buildCommand = &cobra.Command{
+	Use: "build",
+	Run: func(cm *cobra.Command, args []string) {
+		fmt.Println("Building image from docker file at source")
+		err := cmd.BuildDockerFile(envVar, deployVar)
+		if err == nil {
+			fmt.Println("BuildConfig and ImageStream Created Successfully, Build can now be Started")
+		} else {
+			log.Fatal(err)
+		}
 	},
 }
 

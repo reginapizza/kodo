@@ -16,10 +16,12 @@ import (
 	cv1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
+//DeploymentVariables - variables associated with deployment
 type DeploymentVariables struct { //New struct for deployment creation variables
 	Image    string
 	Replicas int32
 	Port     int32
+	Source   string
 }
 
 type DeploymentIdentifiers struct { //New struct to hold unique identifiers for deployment/service/route
