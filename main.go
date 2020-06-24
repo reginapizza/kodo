@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/cli-playground/kodo/pkg/kodo/cmd"
 	"github.com/spf13/cobra"
@@ -23,8 +24,10 @@ var versionCommand = &cobra.Command{
 
 func init() {
 	rcommand.AddCommand(versionCommand)
-	rcommand.AddCommand(listCommand)
+	rcommand.AddCommand(countCommand)
+	countCommand.AddCommand(podCommand)
 	rcommand.AddCommand(deployCommand)
+
 	rcommand.PersistentFlags().StringVarP(&envVar.Host, "server", "s", "myurl", "this is the cluster url")
 	rcommand.PersistentFlags().StringVarP(&envVar.Bearertoken, "token", "t", "usertoken", "this is the user token")
 	rcommand.PersistentFlags().StringVarP(&envVar.Namespace, "namespace", "n", "", "this is the namespace")
@@ -39,6 +42,8 @@ func init() {
 	rcommand.PersistentFlags().Int32VarP(&deployVar.Port, "port", "p", 8000, "port at which app should run")
 
 	rcommand.MarkFlagRequired("server")
+	rcommand.AddCommand(buildCommand)
+	rcommand.PersistentFlags().StringVarP(&deployVar.Source, "source", "o", "github.com", "github repo which has docker image")
 }
 
 func main() {
@@ -46,13 +51,30 @@ func main() {
 	rcommand.Execute()
 }
 
-var listCommand = &cobra.Command{
-	Use: "list",
+var countCommand = &cobra.Command{
+	Use:   "count",
+	Short: "Command to count <resources>",
+}
+
+var podCommand = &cobra.Command{
+	Use: "pods",
 	Run: func(cm *cobra.Command, args []string) {
 		fmt.Println("List All Kubernetes Applications")
 		fmt.Printf("\nFetching all applications from %s in namespace %s", envVar.Host, envVar.Namespace)
 		cmd.List(envVar)
+	},
+}
 
+var buildCommand = &cobra.Command{
+	Use: "build",
+	Run: func(cm *cobra.Command, args []string) {
+		fmt.Println("Building image from docker file at source")
+		err := cmd.BuildDockerFile(envVar, deployVar)
+		if err == nil {
+			fmt.Println("BuildConfig and ImageStream Created Successfully, Build can now be Started")
+		} else {
+			log.Fatal(err)
+		}
 	},
 }
 
@@ -60,6 +82,34 @@ var deployCommand = &cobra.Command{
 	Use: "deploy",
 	Run: func(cm *cobra.Command, args []string) {
 		fmt.Println("Creating image deployment")
-		cmd.Deploy(deployVar, envVar)
+
+		deploymentID := cmd.GenerateUniqueIdentifiers()
+
+		client, clientError := cmd.NewOpenShiftClient(envVar)
+
+		if clientError != nil {
+			log.Fatal(clientError)
+		} else {
+			_, deployError := cmd.Deploy(client.AppsV1(), deployVar, envVar, deploymentID)
+			if deployError != nil {
+				log.Fatal(deployError)
+			} else {
+				serviceObj, serviceObjError := cmd.Service(client.CoreV1(), deployVar, envVar, deploymentID)
+				if serviceObjError != nil {
+					log.Fatal(serviceObjError)
+				} else {
+					routeClient, routev1ClientError := cmd.NewRouteClient(envVar)
+					if routev1ClientError != nil {
+						log.Fatal(routev1ClientError)
+					} else {
+						_, routeError := cmd.Route(routeClient, deployVar, envVar, serviceObj, deploymentID)
+						if routeError != nil {
+							log.Fatal(routeError)
+						}
+					}
+				}
+			}
+		}
+
 	},
 }
